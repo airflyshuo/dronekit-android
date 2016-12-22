@@ -15,7 +15,7 @@ import com.o3dr.services.android.lib.model.ICommandListener;
 import org.droidplanner.services.android.impl.communication.connection.AndroidMavLinkConnection;
 import org.droidplanner.services.android.impl.communication.connection.AndroidTcpConnection;
 import org.droidplanner.services.android.impl.communication.connection.AndroidUdpConnection;
-import org.droidplanner.services.android.impl.communication.connection.BluetoothConnection;
+import org.droidplanner.services.android.impl.communication.connection.BluetoothLeConnection;
 import org.droidplanner.services.android.impl.communication.connection.SoloConnection;
 import org.droidplanner.services.android.impl.communication.connection.usb.UsbConnection;
 import org.droidplanner.services.android.impl.communication.model.DataLink;
@@ -116,7 +116,8 @@ public class MAVLinkClient implements DataLink.DataLinkProvider<MAVLinkMessage> 
                 case ConnectionType.TYPE_BLUETOOTH:
                     //Retrieve the bluetooth address to connect to
                     final String bluetoothAddress = paramsBundle.getString(ConnectionType.EXTRA_BLUETOOTH_ADDRESS);
-                    mavlinkConn = new BluetoothConnection(context, bluetoothAddress);
+//                    mavlinkConn = new BluetoothConnection(context, bluetoothAddress);
+                    mavlinkConn = new BluetoothLeConnection(context, bluetoothAddress);
                     Timber.i("Connecting over bluetooth.");
                     break;
 
