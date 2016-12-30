@@ -18,8 +18,12 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ *  BLE connection
+ * @author jason.xie
+ */
 public class BluetoothLeConnection extends AndroidMavLinkConnection {
-    private static final String TAG = "BluetoothLE";
+    private static final String TAG = "jason";
     private final String mBluetoothAddress;
     protected final Context mContext;
 
@@ -38,34 +42,76 @@ public class BluetoothLeConnection extends AndroidMavLinkConnection {
 
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBluetoothAdapter == null) {
-            Log.d(TAG, "Null adapters");
+            Log.i(TAG, "Null adapters");
         }
     }
 
     @Override
     protected void openConnection(Bundle connectionExtras) throws IOException {
-        Log.d(TAG, "Connect");
+        Log.i(TAG, "Connect");
         mConnectionExtras = connectionExtras;
         connect(mBluetoothAddress);
     }
 
+    byte[] readBuffer = null;
+    synchronized int fillOrReadBuffer(byte[] srcOrDst, boolean fillOrRead){
+        if(fillOrRead) {
+            if (readBuffer == null) {
+                readBuffer = new byte[srcOrDst.length];
+                System.arraycopy(srcOrDst, 0, readBuffer, 0, srcOrDst.length);
+            } else {
+                int lastLength = readBuffer.length;
+                byte[] tmp = new byte[lastLength];
+                System.arraycopy(readBuffer, 0, tmp, 0, lastLength);
+                readBuffer = null;
+                readBuffer = new byte[lastLength + srcOrDst.length];
+                System.arraycopy(tmp, 0, readBuffer, 0, lastLength);
+                System.arraycopy(srcOrDst, 0, readBuffer, lastLength, srcOrDst.length);
+            }
+            return readBuffer.length;
+        }else {
+            if(readBuffer == null) {
+                return -1;
+            } else {
+                System.arraycopy(readBuffer, 0, srcOrDst, 0, readBuffer.length);
+                int len = readBuffer.length;
+                readBuffer = null;
+                return len;
+            }
+        }
+    }
+
     @Override
     protected int readDataBlock(byte[] buffer) throws IOException {
-        if(readCharacteristic(mNotifyCharacteristic)) {
-            buffer = mNotifyCharacteristic.getValue();
-            Log.e(TAG, "readDataBlock buffer: "+buffer);
-        }
+//        if(readCharacteristic(mNotifyCharacteristic)) {
+//            buffer = mNotifyCharacteristic.getValue();
+//            if(buffer != null) {
+//                Log.e(TAG, "readDataBlock buffer = " + bytesToHexString(buffer));
+//                Log.e(TAG, "readDataBlock buffer.length=" + buffer.length);
+//                return buffer.length;
+//            }else{
+//                return 0;
+//            }
+//        }else{
+//            return 0;
+//        }
 
-//        byte[] tmp= new byte[]{(byte)254, 0x33, 0x4C,0x01, 0x01, (byte)253,0x02,0x4E,0x6F,0x74,0x20,0x72,0x65,0x61,0x64,0x79,0x20,0x74,0x6F,
-//                0x20,0x66,0x6C,0x79,0x3A,0x20,0x53,0x65,0x6E,0x73,0x6F,0x72,0x73,0x20,0x6E,0x6F,
-//                0x74 ,0x20,0x73 ,0x65 ,0x74 ,0x20 ,0x75 ,0x70 ,0x20 ,0x63 ,0x6F ,0x72 ,0x72 ,0x65 ,0x63 ,0x74 ,0x6C ,0x79 ,0x00 ,0x00 ,0x00 ,0x00 ,(byte)252 ,0x6B};
+        int bufferSize = fillOrReadBuffer(buffer, false);
+        if(bufferSize > 0) {
+            Log.e(TAG, "readDataBlock buffer  =   " + bytesToHexString(buffer, bufferSize));
+            Log.e(TAG, "readDataBlock bufferSize=" + bufferSize);
+        }
+        return bufferSize;
+
+//        byte[] tmp= new byte[]{(byte)254, 0x09, (byte)177, 0x01, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x02, 0x0C, 0x51, 0x00, 0x03, 0x03, (byte)222};
 //        System.arraycopy(tmp, 0, buffer, 0, tmp.length);
-        return buffer.length;
+//        return buffer.length;
     }
 
     @Override
     protected void sendBuffer(byte[] buffer) throws IOException {
 //        writeValue(buffer);
+//        Log.e(TAG, "sendBuffer buffer : " + bytesToHexString(buffer));
     }
 
     @Override
@@ -76,7 +122,7 @@ public class BluetoothLeConnection extends AndroidMavLinkConnection {
     @Override
     protected void closeConnection() throws IOException {
         disconnect();
-        Log.d(TAG, "## BT Closed ##");
+        Log.i(TAG, "## BT Closed ##");
     }
 
     @Override
@@ -99,6 +145,7 @@ public class BluetoothLeConnection extends AndroidMavLinkConnection {
                         Log.i(TAG, UUID_NOTIFY.toString());
                         mNotifyCharacteristic = gattCharacteristic;
                         setCharacteristicNotification(gattCharacteristic, true);
+                        onConnectionOpened(mConnectionExtras);
 //                        broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
                         return;
                     }
@@ -120,7 +167,6 @@ public class BluetoothLeConnection extends AndroidMavLinkConnection {
                     // Attempts to discover services after successful connection.
                     Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt
                             .discoverServices());
-                    onConnectionOpened(mConnectionExtras);
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                     close();
                     Log.i(TAG, "Disconnected from GATT server.");
@@ -143,18 +189,18 @@ public class BluetoothLeConnection extends AndroidMavLinkConnection {
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic
                 characteristic, int status) {
-            if (status == BluetoothGatt.GATT_SUCCESS) {
+//            if (status == BluetoothGatt.GATT_SUCCESS) {
 //                broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
-            }
-            Log.e(TAG, "onCharacteristicRead");
+//            }
+            Log.e(TAG, "onCharacteristicRead : "+bytesToHexString(characteristic.getValue()));
         }
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic
                 characteristic) {
 //            broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
-            Log.e(TAG, "onCharacteristicChanged");
-
+            Log.e(TAG, "onCharacteristicChanged : "+bytesToHexString(characteristic.getValue()));
+            fillOrReadBuffer(characteristic.getValue(), true);
         }
 
         @Override
@@ -204,7 +250,7 @@ public class BluetoothLeConnection extends AndroidMavLinkConnection {
         // Previously connected device.  Try to reconnect.
         if (mBluetoothDeviceAddress != null && address.equals(mBluetoothDeviceAddress)
                 && mBluetoothGatt != null) {
-            Log.d(TAG, "Trying to use an existing mBluetoothGatt for connection.");
+            Log.i(TAG, "Trying to use an existing mBluetoothGatt for connection.");
             if (mBluetoothGatt.connect()) {
                 mConnectionState = STATE_CONNECTING;
                 return true;
@@ -227,7 +273,7 @@ public class BluetoothLeConnection extends AndroidMavLinkConnection {
         mBluetoothGatt = device.connectGatt(mContext, false, mGattCallback);
         //mBluetoothGatt.connect();
 
-        Log.d(TAG, "Trying to create a new connection.");
+        Log.i(TAG, "Trying to create a new connection.");
         return true;
     }
 
@@ -316,5 +362,43 @@ public class BluetoothLeConnection extends AndroidMavLinkConnection {
         }
 
         return mBluetoothGatt.getServices();
+    }
+
+    /**
+     * Convert byte[] to hex string.这里我们可以将byte转换成int，然后利用Integer.toHexString(int)
+     *来转换成16进制字符串。
+     * @param src byte[] data
+     * @return hex string
+     */
+    public static String bytesToHexString(byte[] src){
+        StringBuilder stringBuilder = new StringBuilder("");
+        if (src == null || src.length <= 0) {
+            return null;
+        }
+        for (int i = 0; i < src.length; i++) {
+            int v = src[i] & 0xFF;
+            String hv = Integer.toHexString(v);
+            if (hv.length() < 2) {
+                stringBuilder.append(0);
+            }
+            stringBuilder.append(hv + " ");
+        }
+        return stringBuilder.toString();
+    }
+
+    public static String bytesToHexString(byte[] src, int size){
+        StringBuilder stringBuilder = new StringBuilder("");
+        if (src == null || src.length <= 0) {
+            return null;
+        }
+        for (int i = 0; i < size; i++) {
+            int v = src[i] & 0xFF;
+            String hv = Integer.toHexString(v);
+            if (hv.length() < 2) {
+                stringBuilder.append(0);
+            }
+            stringBuilder.append(hv + " ");
+        }
+        return stringBuilder.toString();
     }
 }

@@ -3,6 +3,7 @@ package org.droidplanner.services.android.impl.core.drone.manager;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Messages.MAVLinkMessage;
@@ -240,6 +241,7 @@ public class MavLinkDroneManager extends DroneManager<MavLinkDrone, MAVLinkPacke
     @Override
     public void notifyReceivedData(MAVLinkPacket packet) {
         MAVLinkMessage receivedMsg = packet.unpack();
+        Log.i("jason", "notifyReceivedData-receivedMsg.msgid:"+(receivedMsg!=null ? receivedMsg.msgid:"null"));
         if (receivedMsg == null)
             return;
 

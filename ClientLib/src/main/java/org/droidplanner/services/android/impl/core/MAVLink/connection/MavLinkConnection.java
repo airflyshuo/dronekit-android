@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.util.Pair;
+import android.util.Log;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Parser;
@@ -175,6 +176,7 @@ public abstract class MavLinkConnection {
                 MAVLinkPacket receivedPacket = parser.mavlink_parse_char(buffer[i] & 0x00ff);
                 if (receivedPacket != null) {
                     queueToLog(receivedPacket);
+                    Log.i("jason", "handleData-receivedPacket.msgid:"+receivedPacket.msgid+" seq:"+receivedPacket.seq);
                     reportReceivedPacket(receivedPacket);
                 }
             }
