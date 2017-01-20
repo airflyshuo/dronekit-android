@@ -13,7 +13,7 @@ sourceSets {
 }
 
 jar {
-    destinationDir (new File("${rootDir}/ClientLib/libs"))
+    destinationDir (new File("${rootDir}/dronekit-android/ClientLib/libs"))
 }
 
 dependencies {

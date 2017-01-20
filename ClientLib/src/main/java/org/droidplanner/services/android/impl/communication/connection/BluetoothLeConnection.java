@@ -110,8 +110,8 @@ public class BluetoothLeConnection extends AndroidMavLinkConnection {
 
     @Override
     protected void sendBuffer(byte[] buffer) throws IOException {
-//        writeValue(buffer);
-//        Log.e(TAG, "sendBuffer buffer : " + bytesToHexString(buffer));
+        writeValue(buffer);
+        Log.e(TAG, "sendBuffer buffer : " + bytesToHexString(buffer));
     }
 
     @Override
