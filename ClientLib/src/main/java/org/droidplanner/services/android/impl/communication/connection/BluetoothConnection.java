@@ -18,8 +18,10 @@ import java.net.UnknownHostException;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.droidplanner.services.android.impl.communication.connection.BluetoothLeConnection.bytesToHexString;
+
 public class BluetoothConnection extends AndroidMavLinkConnection {
-    private static final String BLUE = "BLUETOOTH";
+    private static final String BLUE = "jason";
     private static final String UUID_SPP_DEVICE = "00001101-0000-1000-8000-00805F9B34FB";
     private BluetoothAdapter mBluetoothAdapter;
     private OutputStream out;
@@ -107,14 +109,17 @@ public class BluetoothConnection extends AndroidMavLinkConnection {
 
     @Override
     protected int readDataBlock(byte[] buffer) throws IOException {
-        return in.read(buffer);
-
+        int recved = in.read(buffer);
+        Log.e(BLUE, "readDataBlock recved: " + recved);
+        Log.e(BLUE, "readDataBlock : " + bytesToHexString(buffer, recved));
+        return recved;
     }
 
     @Override
     protected void sendBuffer(byte[] buffer) throws IOException {
         if (out != null) {
             out.write(buffer);
+            Log.e(BLUE, "sendBuffer : "+bytesToHexString(buffer));
         }
     }
 
