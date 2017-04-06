@@ -215,7 +215,7 @@ public class MAVLinkClient implements DataLink.DataLinkProvider<MAVLinkMessage> 
             return;
         }
 
-        Log.i("jason", "sendMavMessage--msgid:"+message.msgid);
+        Log.i("jason", "sendMavMsg: "+message);
         final MAVLinkPacket packet = message.pack();
         packet.sysid = sysId;
         packet.compid = compId;

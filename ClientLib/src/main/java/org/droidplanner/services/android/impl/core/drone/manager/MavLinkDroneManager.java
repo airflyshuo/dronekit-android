@@ -241,10 +241,10 @@ public class MavLinkDroneManager extends DroneManager<MavLinkDrone, MAVLinkPacke
     @Override
     public void notifyReceivedData(MAVLinkPacket packet) {
         MAVLinkMessage receivedMsg = packet.unpack();
-        Log.i("jason", "notifyReceivedData-receivedMsg.msgid:"+(receivedMsg!=null ? receivedMsg.msgid:"null"));
         if (receivedMsg == null)
             return;
 
+        Log.i("jason", "receivedMavMsg: "+receivedMsg);
         if (receivedMsg.msgid == msg_command_ack.MAVLINK_MSG_ID_COMMAND_ACK) {
             msg_command_ack commandAck = (msg_command_ack) receivedMsg;
             handleCommandAck(commandAck);
